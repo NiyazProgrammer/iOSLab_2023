@@ -1,12 +1,6 @@
-//
-//  PublishersView.swift
-//  WorkWithUICollectionView
-//
-//  Created by Нияз Ризванов on 01.11.2023.
-//
-
 import UIKit
 class PublicationsView: UIView {
+    var actionAlertPresent: ((UIAlertController) -> Void)?
     weak var controller: PublicationViewController?
     var publications: [Publication] = []
     var cat: User?
@@ -49,8 +43,11 @@ extension PublicationsView: UITableViewDataSource {
             let publication = publications[indexPath.row]
             cell.isLiked = PublicationDataManager.shared.tryLiked(publicationId: publication.id ?? UUID(), userName: cat?.login ?? "")
             cell.configure(with: publication)
-            cell.delegate = self.controller
+            cell.actionAlertPresent = { [weak self] alert in
+                self?.actionAlertPresent?(alert)
+            }
             cell.delegateLike = self
+            cell.indexPath = indexPath
             cell.currentPublication = publication
 
             return cell
@@ -61,11 +58,14 @@ extension PublicationsView: UITableViewDataSource {
 }
 extension PublicationsView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 730
+        return 770
     }
 }
 extension PublicationsView: PublicationCellLikeDelegate {
     func toggleLike(publicationId: UUID) {
         PublicationDataManager.shared.toggleLike(publicationId: publicationId, userName: cat?.login ?? "")
+    }
+    func didTapLikeButton() {
+        tablePublication.reloadData()
     }
 }

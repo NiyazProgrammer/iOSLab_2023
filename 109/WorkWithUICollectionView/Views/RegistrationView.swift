@@ -1,15 +1,8 @@
-//
-//  RegistrationView.swift
-//  WorkWithUICollectionView
-//
-//  Created by Нияз Ризванов on 03.11.2023.
-//
-
 import UIKit
 
 class RegistrationView: UIView {
-    weak var controller: RegistrationViewController?
-
+    var actionSendData: ((String, String) -> Void)?
+    var actionAlertPresent: ((UIAlertController) -> Void)?
     private lazy var logoImage: UIImageView = {
         let logo = UIImageView()
         logo.translatesAutoresizingMaskIntoConstraints = false
@@ -51,11 +44,11 @@ class RegistrationView: UIView {
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
-    private lazy var buttonEnter: UIButton = {
+    private lazy var buttonEnter: UIButton = { [weak self] in
         var action = UIAction { _ in
-            guard let textLogin = self.textFieldLogin.text else {return}
-            guard let textPassword = self.textFieldPassword.text else {return}
-            self.controller?.actionForButtonEnter(textLogin: textLogin, textPassword: textPassword)
+            guard let textLogin = self?.textFieldLogin.text else {return}
+            guard let textPassword = self?.textFieldPassword.text else {return}
+            self?.actionSendData?(textLogin, textPassword)
         }
         let button = UIButton(type: .custom, primaryAction: action)
         button.backgroundColor = .systemGray4
@@ -66,7 +59,7 @@ class RegistrationView: UIView {
     }()
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .white
+        backgroundColor = .black
         addSubview(logoImage)
         addSubview(buttonEnter)
         setupLayout()
@@ -112,6 +105,6 @@ class RegistrationView: UIView {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
         alertController.addAction(okAction)
-        controller?.present(alertController, animated: true, completion: nil)
+        self.actionAlertPresent?(alertController)
     }
 }

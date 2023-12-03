@@ -1,11 +1,3 @@
-//
-//  Manager.swift
-//  WorkWithUICollectionView
-//
-//  Created by Нияз Ризванов on 30.10.2023.
-//
-
-import Foundation
 import UIKit
 
 class PublicationDataManager: PublicationProtocol {
@@ -106,15 +98,16 @@ class PublicationDataManager: PublicationProtocol {
     func asyncSave(_ publication: Publication, completion: @escaping (Bool) -> Void) {
     }
 
-    func getLikes(forPublicationId publicationId: UUID) -> [String] {
-        if let publication = PublicationDataManager
-            .publicationsCurrentUser?
-            .first(where: {$0.id == publicationId}) {
-            return publication.likes
-        } else {
-            return []
+    func getCountLikes(forPublicationId publicationId: UUID) -> Int {
+        for (_, publications) in dictionaryUserAndPublication {
+            if let index = publications.firstIndex(where: { $0.id == publicationId }) {
+                let publication = publications[index]
+                return publication.likes.count
+            }
         }
+        return 0
     }
+
     func toggleLike(publicationId: UUID, userName: String) {
         DispatchQueue.global().async {
             for (userKey, publications) in self.dictionaryUserAndPublication {
@@ -136,7 +129,7 @@ class PublicationDataManager: PublicationProtocol {
         var isLiked = false
         for (_, publications) in dictionaryUserAndPublication {
             if let index = publications.firstIndex(where: { $0.id == publicationId }) {
-                var publication = publications[index]
+                let publication = publications[index]
                 if publication.likes.contains(userName) {
                     isLiked = true
                 }

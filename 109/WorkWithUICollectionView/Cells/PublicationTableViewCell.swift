@@ -1,15 +1,11 @@
 import UIKit
-protocol PublicationCellDelegate: AnyObject {}
-
-protocol PublicationCellLikeDelegate: AnyObject {
-    func toggleLike(publicationId: UUID)
-}
-
 class PublicationTableViewCell: UITableViewCell {
+    var actionAlertPresent: ((UIAlertController) -> Void)?
     var isLiked: Bool?
+    var indexPath: IndexPath?
     var currentPublication: Publication?
-    weak var delegate: PublicationCellDelegate?
     weak var delegateLike: PublicationCellLikeDelegate?
+
     private lazy var imageAvatar: UIImageView = {
         let image = UIImageView()
         image.image = UIImage(named: "photo1")
@@ -41,9 +37,7 @@ class PublicationTableViewCell: UITableViewCell {
             let cancelAction = UIAlertAction(title: "Отмена", style: .cancel, handler: nil)
             alertController.addAction(deleteAction)
             alertController.addAction(cancelAction)
-            if let viewController = self.delegate as? UIViewController {
-                viewController.present(alertController, animated: true, completion: nil)
-            }
+            self.actionAlertPresent?(alertController)
         }
         let button = UIButton(type: .custom, primaryAction: action)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -56,6 +50,12 @@ class PublicationTableViewCell: UITableViewCell {
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
     }()
+    private lazy var labelCountLikes: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     private lazy var buttonHeart: UIButton = {
         let button = UIButton(type: .custom)
         var action = UIAction { _ in
@@ -67,14 +67,21 @@ class PublicationTableViewCell: UITableViewCell {
             } else {
                 button.setImage(UIImage(named: "emptyHeart"), for: .normal)
                 self.isLiked = false
+                self.delegateLike?.didTapLikeButton()
             }
             DispatchQueue.global().async {
-                (self.delegateLike?.toggleLike(publicationId: publication.id ?? UUID()))
+                self.delegateLike?.toggleLike(publicationId: publication.id ?? UUID())
             }
+            self.updateCountLikes(publicationId: publication.id ?? UUID())
         }
         button.addAction(action, for: .touchUpInside)
         return button
     }()
+
+    func updateCountLikes(publicationId: UUID) {
+        let count = PublicationDataManager.shared.getCountLikes(forPublicationId: publicationId)
+        labelCountLikes.text = "Нравится: \(count) пользователям"
+    }
 
     func setImageHeart() {
         if isLiked ?? false {
@@ -132,6 +139,7 @@ class PublicationTableViewCell: UITableViewCell {
         contentView.addSubview(descriptionPublication)
         contentView.addSubview(datePublication)
         contentView.addSubview(favoriteIcon)
+        contentView.addSubview(labelCountLikes)
         imageAvatar.layer.cornerRadius = 15
         imageAvatar.clipsToBounds = true
         setupLayout()
@@ -153,6 +161,7 @@ class PublicationTableViewCell: UITableViewCell {
             },
             completion: { _ in
                 self.imageForAnimationLike.removeFromSuperview()
+                self.delegateLike?.didTapLikeButton()
             }
         )
     }
@@ -190,8 +199,10 @@ class PublicationTableViewCell: UITableViewCell {
             favoriteIcon.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             favoriteIcon.topAnchor.constraint(equalTo: photoPublication.bottomAnchor, constant: 15),
             favoriteIcon.heightAnchor.constraint(equalToConstant: 35),
+            labelCountLikes.topAnchor.constraint(equalTo: iconsStackView.bottomAnchor, constant: 5),
+            labelCountLikes.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             descriptionPublication.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15),
-            descriptionPublication.topAnchor.constraint(equalTo: iconsStackView.bottomAnchor, constant: 15),
+            descriptionPublication.topAnchor.constraint(equalTo: labelCountLikes.bottomAnchor, constant: 15),
             datePublication.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15),
             datePublication.topAnchor.constraint(equalTo: descriptionPublication.bottomAnchor, constant: 10)
         ])
@@ -204,5 +215,7 @@ class PublicationTableViewCell: UITableViewCell {
         datePublication.text = publication.date
         descriptionPublication.text = publication.description
         setImageHeart()
+        updateCountLikes(publicationId: publication.id ?? UUID())
     }
 }
+

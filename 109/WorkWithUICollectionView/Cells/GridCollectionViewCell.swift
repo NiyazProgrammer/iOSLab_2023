@@ -1,10 +1,3 @@
-//
-//  GridCollectionViewCell.swift
-//  WorkWithUICollectionView
-//
-//  Created by Нияз Ризванов on 02.11.2023.
-//
-
 import UIKit
 
 class GridCollectionViewCell: UICollectionViewCell {

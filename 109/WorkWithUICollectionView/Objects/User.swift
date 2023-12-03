@@ -1,10 +1,3 @@
-//
-//  Cat.swift
-//  WorkWithUICollectionView
-//
-//  Created by Нияз Ризванов on 06.11.2023.
-//
-
 import Foundation
 import UIKit
 struct User: Codable {
@@ -12,7 +5,7 @@ struct User: Codable {
     let fullName: String
     let login: String
     let password: String
-    let imageAvatarData: Data?  // Используем Data вместо UIImage
+    let imageAvatarData: Data?
     var publications: [Publication] = []
     var subscriptions: [User] = []
     var numberPublications: Int { return publications.count }

@@ -1,11 +1,3 @@
-//
-//  RegistrationDataManager.swift
-//  WorkWithUICollectionView
-//
-//  Created by Нияз Ризванов on 07.11.2023.
-//
-
-import Foundation
 import UIKit
 protocol UpdateDataEverythingControllers: AnyObject {
     func updateData()
@@ -17,7 +9,6 @@ class RegistrationDataManager: UsersProtocol {
     weak var delegate: UpdateDataEverythingControllers?
     weak var delegate1: UpdateDataEverythingControllers?
     weak var delegate2: UpdateDataEverythingControllers?
-//    static var user: User = User(nickName: "", fullName: "", login: "", password: "", numberSubscribers: 0, numberSubscriptions: 0, description: "")
     static var user: User?
     var users: [User] = []
     private let userDefaults = UserDefaults(suiteName: "CurrentUser")
@@ -28,7 +19,7 @@ class RegistrationDataManager: UsersProtocol {
             fullName: "Cat junior",
             login: "Cat1",
             password: "123",
-            imageAvatarData: UIImage(named: "photo1")?.pngData(),  // Преобразование UIImage в Data
+            imageAvatarData: UIImage(named: "photo1")?.pngData(),
             numberSubscribers: 100,
             numberSubscriptions: 500,
             description: "I am junior developer"
@@ -39,7 +30,7 @@ class RegistrationDataManager: UsersProtocol {
             fullName: "Cat middle",
             login: "Cat2",
             password: "123",
-            imageAvatarData: UIImage(named: "photo2")?.pngData(),  // Преобразование UIImage в Data
+            imageAvatarData: UIImage(named: "photo2")?.pngData(),
             numberSubscribers: 500,
             numberSubscriptions: 300,
             description: "I am middle developer"
@@ -50,7 +41,7 @@ class RegistrationDataManager: UsersProtocol {
             fullName: "Cat senior",
             login: "Cat3",
             password: "123",
-            imageAvatarData: UIImage(named: "photo3")?.pngData(),  // Преобразование UIImage в Data
+            imageAvatarData: UIImage(named: "photo3")?.pngData(),
             numberSubscribers: 2200,
             numberSubscriptions: 200,
             description: "I am senior developer"
@@ -75,7 +66,7 @@ class RegistrationDataManager: UsersProtocol {
     func getCurrentUser() async -> User? {
         return RegistrationDataManager.user
     }
-    func login(login: String, password: String) async {
+    func tryLogin(login: String, password: String) async {
         guard let newUser = await self.asyncCheckedUser(login: login, password: password) else { return }
         let publication = await PublicationDataManager.shared.asyncPublicationCurrentUser(user: newUser)
             RegistrationDataManager.user = newUser

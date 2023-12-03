@@ -1,21 +1,14 @@
-//
-//  PublisherViewController.swift
-//  WorkWithUICollectionView
-//
-//  Created by Нияз Ризванов on 30.10.2023.
-//
-
 import UIKit
 protocol UpdateDataDelegate: AnyObject {
     func updateData()
 }
-class PublicationViewController: UIViewController, PublicationCellDelegate, UpdateDataDelegate, UpdateDataEverythingControllers {
-    var currentCat: User?
+
+class PublicationViewController: UIViewController, UpdateDataDelegate, UpdateDataEverythingControllers {
+    lazy var publicationView = PublicationsView(frame: .zero)
     weak var delegate: UpdateDataDelegate?
     func updateData() {
         Task {
             let cat = await RegistrationDataManager.shared.getCurrentUser()
-            currentCat = cat
             publicationView.cat = cat
             guard let newPublication = cat?.publications else {return}
             publicationView.publications = newPublication
@@ -23,17 +16,18 @@ class PublicationViewController: UIViewController, PublicationCellDelegate, Upda
             publicationView.tablePublication.reloadData()
         }
     }
-    lazy var publicationView = PublicationsView(frame: .zero)
 
     var selectedIndexPath: IndexPath?
 
     override func loadView() {
         super.loadView()
+        publicationView.actionAlertPresent = { [weak self] alert in
+            self?.present(alert, animated: true, completion: nil)
+        }
         view = publicationView
     }
     override func viewDidLoad() {
         super.viewDidLoad()
-        publicationView.controller = self
         RegistrationDataManager.shared.delegate2 = self
         updateData()
     }

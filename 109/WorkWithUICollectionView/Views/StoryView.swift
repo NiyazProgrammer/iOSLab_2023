@@ -1,14 +1,6 @@
-//
-//  StoryView.swift
-//  WorkWithUICollectionView
-//
-//  Created by Нияз Ризванов on 04.11.2023.
-//
-
 import UIKit
-
 class StoryView: UIView {
-    weak var controler: StoryViewController?
+    var actionAlertPresent: ((UIAlertController) -> Void)?
     var publication: [Publication] = []
     var cat: User?
     lazy var storyImagesColeectionView: UICollectionView = {
@@ -61,11 +53,6 @@ class StoryView: UIView {
             tableStoryPosts.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
-    func setupNavigationBar() {
-        controler?.navigationItem.title = "Catgram"
-        controler?.navigationController?.navigationBar.titleTextAttributes = [
-            NSAttributedString.Key.foregroundColor: UIColor.white]
-    }
 }
 extension StoryView: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -96,8 +83,11 @@ extension StoryView: UITableViewDataSource {
             let publication = publication[indexPath.row]
             cell.isLiked = PublicationDataManager.shared.tryLiked(publicationId: publication.id ?? UUID(), userName: cat?.login ?? "")
             cell.configure(with: publication)
-            cell.delegate = controler
+            cell.actionAlertPresent = { [weak self] alert in
+                self?.actionAlertPresent?(alert)
+            }
             cell.delegateLike = self
+            cell.indexPath = indexPath
             cell.currentPublication = publication
             return cell
         } else {
@@ -107,11 +97,14 @@ extension StoryView: UITableViewDataSource {
 }
 extension StoryView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 730
+        return 770
     }
 }
 extension StoryView: PublicationCellLikeDelegate {
     func toggleLike(publicationId: UUID) {
         PublicationDataManager.shared.toggleLike(publicationId: publicationId, userName: cat?.login ?? "")
+    }
+    func didTapLikeButton() {
+        tableStoryPosts.reloadData()
     }
 }

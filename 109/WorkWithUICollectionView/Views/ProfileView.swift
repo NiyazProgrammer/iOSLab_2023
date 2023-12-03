@@ -1,14 +1,8 @@
-//
-//  ProfileView.swift
-//  WorkWithUICollectionView
-//
-//  Created by Нияз Ризванов on 01.11.2023.
-//
-
 import UIKit
 
 class ProfileView: UIView {
-    weak var controller: ProfileViewController?
+    var subscribersTapped: (() -> Void)?
+    var optionsTapped: (() -> Void)?
     var cat: User? {
         didSet {
             avatarImage.image = UIImage(data: cat?.imageAvatarData ?? Data())
@@ -20,18 +14,9 @@ class ProfileView: UIView {
             self.numberPublication.text = "\(self.count)"
         }
     }
-    lazy var buttonForRefactorProfile: UIButton = {
-        var action = UIAction { _ in
-            let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-            let deleteAction = UIAlertAction(title: "Выйти", style: .destructive) { _ in
-                UserDefaults.standard.setValue(false, forKey: "loggedIn")
-                SceneDelegate.window?.rootViewController = RegistrationViewController()
-                SceneDelegate.window?.makeKeyAndVisible()
-            }
-            let cancelAction = UIAlertAction(title: "Отмена", style: .cancel, handler: nil)
-            alertController.addAction(deleteAction)
-            alertController.addAction(cancelAction)
-            self.controller?.present(alertController, animated: true, completion: nil)
+    lazy var buttonForOptionsProfile: UIButton = {
+        var action = UIAction { [weak self] _ in
+            (self?.optionsTapped ?? {})()
         }
         let button = UIButton(type: .custom)
         let buttonImage = UIImage(named: "threePoints")
@@ -41,7 +26,7 @@ class ProfileView: UIView {
     }()
     lazy var avatarImage: UIImageView = {
         let image = UIImageView()
-        image.image = UIImage(data: controller?.currentCat?.imageAvatarData ?? Data())
+        image.image = UIImage(data: RegistrationDataManager.user?.imageAvatarData ?? Data())
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
     }()
@@ -50,7 +35,7 @@ class ProfileView: UIView {
         text.translatesAutoresizingMaskIntoConstraints = false
         text.textColor = .white
         text.font = UIFont.systemFont(ofSize: 12)
-        text.text = "Publication"
+        text.text = "Публикации"
         return text
     }()
     lazy var numberPublication: UILabel = {
@@ -66,7 +51,7 @@ class ProfileView: UIView {
         text.translatesAutoresizingMaskIntoConstraints = false
         text.textColor = .white
         text.font = UIFont.systemFont(ofSize: 12)
-        text.text = "Subscribers"
+        text.text = "Подписчики"
         return text
     }()
     lazy var numberSubscribers: UILabel = {
@@ -82,7 +67,7 @@ class ProfileView: UIView {
         text.translatesAutoresizingMaskIntoConstraints = false
         text.textColor = .white
         text.font = UIFont.systemFont(ofSize: 12)
-        text.text = "Subscriptions"
+        text.text = "Подписки"
         return text
     }()
     lazy var numberSubscriptions: UILabel = {
@@ -100,7 +85,7 @@ class ProfileView: UIView {
         text.textColor = .white
         return text
     }()
-    lazy var gridCollectionView: UICollectionView = {
+    lazy var gridCollectionView: UICollectionView = { [weak self] in
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         layout.minimumInteritemSpacing = 0
@@ -113,7 +98,6 @@ class ProfileView: UIView {
             GridCollectionViewCell.self,
             forCellWithReuseIdentifier: GridCollectionViewCell.reuseIdentifier)
         collectionView.dataSource = self
-        collectionView.delegate = self
         return collectionView
     }()
     override init(frame: CGRect) {
@@ -124,7 +108,6 @@ class ProfileView: UIView {
         addSubview(avatarImage)
         addSubview(descriptionCanal)
         addSubview(gridCollectionView)
-        setupNavigationBar()
         setupLayout()
     }
     required init?(coder: NSCoder) {
@@ -134,6 +117,10 @@ class ProfileView: UIView {
         let mainStackView1 = createVerticalStackView([textPublication, numberPublication])
         let mainStacklView2 = createVerticalStackView([textSubscribers, numberSubscribers])
         let mainStacklView3 = createVerticalStackView([textSubscriptions, numberSubscriptions])
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(showSubscribers))
+        mainStacklView2.addGestureRecognizer(tapGesture)
+
         addSubview(mainStackView1)
         addSubview(mainStacklView2)
         addSubview(mainStacklView3)
@@ -163,6 +150,9 @@ class ProfileView: UIView {
                 gridCollectionView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
+    @objc func showSubscribers() {
+        (subscribersTapped ?? {})()
+    }
     func createVerticalStackView(_ views: [UIView]) -> UIStackView {
         let stackView = UIStackView(arrangedSubviews: views)
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -171,14 +161,6 @@ class ProfileView: UIView {
         stackView.distribution = .fillEqually
         stackView.spacing = 5
         return stackView
-    }
-    func setupNavigationBar() {
-        let customBarButtonItem = UIBarButtonItem(customView: buttonForRefactorProfile)
-        controller?.navigationItem.rightBarButtonItem = customBarButtonItem
-        controller?.navigationItem.title = cat?.login
-        controller?.navigationController?.navigationBar.titleTextAttributes = [
-            NSAttributedString.Key.foregroundColor: UIColor.white
-        ]
     }
 }
 extension ProfileView: UICollectionViewDataSource {
@@ -203,9 +185,3 @@ extension ProfileView: UICollectionViewDataSource {
         }
     }
 }
-extension ProfileView: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        controller?.collectionView(collectionView, didSelectItemAt: indexPath)
-    }
-}
-

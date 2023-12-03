@@ -1,10 +1,3 @@
-//
-//  DataManagerProtocol.swift
-//  WorkWithUICollectionView
-//
-//  Created by Нияз Ризванов on 07.11.2023.
-//
-
 import Foundation
 
 protocol UsersProtocol: AnyObject {
